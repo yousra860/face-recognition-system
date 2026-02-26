@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Recognition System | Université de Saida</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .logo-icon {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        
+        .logo-text h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: #333;
+        }
+        
+        .logo-text p {
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #e8f5e9;
+            border-radius: 20px;
+            font-size: 14px;
+            color: #2e7d32;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #4caf50;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        /* Main Container */
+        .container {
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+        
+        /* Cards Grid */
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+        
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .card-icon {
+            width: 60px;
+            height: 60px;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+        
+        .card-icon.enroll { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
+        .card-icon.verify { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); }
+        .card-icon.identify { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); }
+        
+        .card-title h3 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .card-title p {
+            font-size: 13px;
+            color: #888;
+            margin-top: 5px;
+        }
+        
+        /* Form Elements */
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+            font-size: 14px;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid #e0e0e0;
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s;
+            background: #fafafa;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+        }
+        
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+        
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+        
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 20px;
+            border: 2px dashed #ccc;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fafafa;
+            color: #666;
+        }
+        
+        .file-input-label:hover {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+        
+        .file-input-label.has-file {
+            border-color: #4caf50;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            box-shadow: 0 10px 30px rgba(17, 153, 142, 0.4);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+        
+        .btn-info:hover {
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+        }
+        
+        /* Result Section */
+        .result-section {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-top: 30px;
+        }
+        
+        .result-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+        
+        .result-header h2 {
+            font-size: 22px;
+            font-weight: 700;
+        }
+        
+        .result-content {
+            min-height: 200px;
+        }
+        
+        .result-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        
+        .result-empty-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+        
+        /* Success Result Card */
+        .result-card {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border: 2px solid #4caf50;
+            border-radius: 15px;
+            padding: 25px;
+            animation: slideIn 0.5s ease;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .result-card.error {
+            background: linear-gradient(135deg, #ffebee 0%, #ffcdd2 100%);
+            border-color: #f44336;
+        }
+        
+        .result-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+        }
+        
+        .result-card-header h3 {
+            font-size: 20px;
+            color: #2e7d32;
+        }
+        
+        .result-card.error .result-card-header h3 {
+            color: #c62828;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .info-item {
+            background: rgba(255,255,255,0.7);
+            padding: 15px;
+            border-radius: 10px;
+        }
+        
+        .info-item label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .info-item value {
+            display: block;
+            font-size: 18px;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .confidence-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #4caf50;
+            color: white;
+            border-radius: 20px;
+            font-weight: 700;
+            margin-left: auto;
+        }
+        
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .loading.active {
+            display: block;
+        }
+        
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.9);
+            font-size: 14px;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        .footer strong {
+            color: white;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .header-content {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
+            
+            .logo-text h1 {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo">
+                <div class="logo-icon">🔐</div>
+                <div class="logo-text">
+                    <h1>Face Recognition Cloud System</h1>
+                    <p>Master 2 RISR - Final Year Project</p>
+                </div>
+            </div>
+            <div class="status">
+                <span class="status-dot"></span>
+                <span>System Online</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Cards Grid -->
+        <div class="cards-grid">
+            <!-- Enroll Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon enroll">📝</div>
+                    <div class="card-title">
+                        <h3>Enroll New Face</h3>
+                        <p>Add new person to database</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" id="enroll_user_id" placeholder="e.g., user001">
+                </div>
+                
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="enroll_name" placeholder="Full name">
+                </div>
+                
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="enroll_email" placeholder="example@domain.com">
+                </div>
+                
+                <div class="form-group">
+                    <label>Department / Unit</label>
+                    <input type="text" id="enroll_dept" placeholder="e.g., Computer Science">
+                </div>
+                
+                <div class="form-group">
+                    <label>Face Image</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="enroll_image" accept="image/*" onchange="updateFileLabel(this)">
+                        <label for="enroll_image" class="file-input-label" id="enroll_file_label">
+                            📷 Click to select image
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-success" onclick="enroll()">
+                    <span>🚀</span>
+                    <span>Enroll Face</span>
+                </button>
+            </div>
+
+            <!-- Verify Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon verify">✅</div>
+                    <div class="card-title">
+                        <h3>Verify Identity</h3>
+                        <p>Compare face with specific user (1:1)</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>User ID</label>
+                    <input type="text" id="verify_user_id" placeholder="Enter user ID">
+                </div>
+                
+                <div class="form-group">
+                    <label>Image to Verify</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="verify_image" accept="image/*" onchange="updateFileLabel(this)">
+                        <label for="verify_image" class="file-input-label" id="verify_file_label">
+                            📷 Click to select image
+                        </label>
+                    </div>
+                </div>
+                
+                <button class="btn btn-info" onclick="verify()">
+                    <span>🔍</span>
+                    <span>Verify Identity</span>
+                </button>
+            </div>
+
+            <!-- Identify Card -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon identify">🔎</div>
+                    <div class="card-title">
+                        <h3>Identify Person</h3>
+                        <p>Search in database (1:N)</p>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label>Image to Search</label>
+                    <div class="file-input-wrapper">
+                        <input type="file" id="identify_image" accept="image/*" onchange="updateFileLabel(this)">
+                        <label for="identify_image" class="file-input-label" id="identify_file_label">
+                            📷 Click to select image
+                        </label>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <p style="color: #666; font-size: 14px; line-height: 1.6;">
+                        💡 <strong>Tip:</strong> The system will search through all enrolled faces and return the best match with all available information.
+                    </p>
+                </div>
+                
+                <button class="btn btn-primary" onclick="identify()">
+                    <span>🎯</span>
+                    <span>Search Database</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="result-section">
+            <div class="result-header">
+                <span style="font-size: 28px;">📊</span>
+                <h2>Operation Result</h2>
+            </div>
+            
+            <div class="result-content">
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Processing...</p>
+                </div>
+                
+                <div id="result">
+                    <div class="result-empty">
+                        <div class="result-empty-icon">🤔</div>
+                        <h3>No operation yet</h3>
+                        <p>Select an operation above to display results here</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p><strong>Université de Saida - Dr. Moulay Tahar</strong></p>
+        <p>Master 2 RISR - Face Recognition Cloud System</p>
+        <p>Final Year Project 2024/2025</p>
+    </footer>
+
+    <script>
+        const API_URL = 'http://localhost:8000/api/v1';
+        
+        function updateFileLabel(input) {
+            const label = document.getElementById(input.id + '_label');
+            if (input.files && input.files[0]) {
+                label.textContent = '✅ ' + input.files[0].name;
+                label.classList.add('has-file');
+            }
+        }
+        
+        function showLoading() {
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('result').innerHTML = '';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loading').classList.remove('active');
+        }
+        
+        function showResult(data, isError = false) {
+            hideLoading();
+            const resultDiv = document.getElementById('result');
+            
+            if (isError) {
+                resultDiv.innerHTML = `
+                    <div class="result-card error">
+                        <div class="result-card-header">
+                            <span style="font-size: 24px;">❌</span>
+                            <h3>Error Occurred</h3>
+                        </div>
+                        <p style="color: #c62828; font-size: 16px;">${data.error || 'Unknown error'}</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Success Enrollment
+            if (data.message && data.message.includes('Enrolled')) {
+                resultDiv.innerHTML = `
+                    <div class="result-card">
+                        <div class="result-card-header">
+                            <span style="font-size: 24px;">✅</span>
+                            <h3>Enrollment Successful</h3>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>User ID</label>
+                                <value>${data.user_id}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>Full Name</label>
+                                <value>${data.full_name}</value>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Verification Result
+            if (data.user && data.match !== undefined) {
+                const isMatch = data.match;
+                resultDiv.innerHTML = `
+                    <div class="result-card ${isMatch ? '' : 'error'}">
+                        <div class="result-card-header">
+                            <span style="font-size: 24px;">${isMatch ? '✅' : '❌'}</span>
+                            <h3>${isMatch ? 'Verification Successful' : 'Verification Failed'}</h3>
+                            <span class="confidence-badge">
+                                ${(data.confidence * 100).toFixed(1)}%
+                            </span>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Full Name</label>
+                                <value>${data.user.full_name}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>User ID</label>
+                                <value>${data.user.user_id}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>Email</label>
+                                <value>${data.user.email || 'Not available'}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>Department</label>
+                                <value>${data.user.department || 'Not available'}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>Access Count</label>
+                                <value>${data.user.access_count}</value>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Identification Result
+            if (data.matches && data.matches.length > 0) {
+                const match = data.matches[0];
+                const user = match.user;
+                resultDiv.innerHTML = `
+                    <div class="result-card">
+                        <div class="result-card-header">
+                            <span style="font-size: 24px;">🎯</span>
+                            <h3>Match Found</h3>
+                            <span class="confidence-badge">
+                                Accuracy: ${(match.confidence * 100).toFixed(1)}%
+                            </span>
+                        </div>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <label>Full Name</label>
+                                <value>${user.full_name}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>User ID</label>
+                                <value>${user.user_id}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>Email</label>
+                                <value>${user.email || 'Not available'}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>Department</label>
+                                <value>${user.department || 'Not available'}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>Access Count</label>
+                                <value>${user.access_count}</value>
+                            </div>
+                            <div class="info-item">
+                                <label>Registered Since</label>
+                                <value>${new Date(user.registered_since).toLocaleDateString('en-US')}</value>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            // No Match
+            if (data.matches && data.matches.length === 0) {
+                resultDiv.innerHTML = `
+                    <div class="result-card error">
+                        <div class="result-card-header">
+                            <span style="font-size: 24px;">😕</span>
+                            <h3>No Match Found</h3>
+                        </div>
+                        <p style="color: #666;">This face is not registered in the database</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Default
+            resultDiv.innerHTML = `<pre>${JSON.stringify(data, null, 2)}</pre>`;
+        }
+        
+        async function enroll() {
+            const formData = new FormData();
+            formData.append('user_id', document.getElementById('enroll_user_id').value);
+            formData.append('full_name', document.getElementById('enroll_name').value);
+            formData.append('email', document.getElementById('enroll_email').value);
+            formData.append('department', document.getElementById('enroll_dept').value);
+            
+            const fileInput = document.getElementById('enroll_image');
+            if (!fileInput.files[0]) {
+                showResult({error: 'Please select an image'}, true);
+                return;
+            }
+            formData.append('image', fileInput.files[0]);
+            
+            showLoading();
+            try {
+                const response = await fetch(`${API_URL}/enroll/`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                showResult(data, !response.ok);
+            } catch (error) {
+                showResult({error: 'Failed to connect to server'}, true);
+            }
+        }
+        
+        async function verify() {
+            const formData = new FormData();
+            formData.append('user_id', document.getElementById('verify_user_id').value);
+            
+            const fileInput = document.getElementById('verify_image');
+            if (!fileInput.files[0]) {
+                showResult({error: 'Please select an image'}, true);
+                return;
+            }
+            formData.append('image', fileInput.files[0]);
+            
+            showLoading();
+            try {
+                const response = await fetch(`${API_URL}/verify/`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                showResult(data, !response.ok);
+            } catch (error) {
+                showResult({error: 'Failed to connect to server'}, true);
+            }
+        }
+        
+        async function identify() {
+            const formData = new FormData();
+            
+            const fileInput = document.getElementById('identify_image');
+            if (!fileInput.files[0]) {
+                showResult({error: 'Please select an image'}, true);
+                return;
+            }
+            formData.append('image', fileInput.files[0]);
+            formData.append('max_results', '5');
+            
+            showLoading();
+            try {
+                const response = await fetch(`${API_URL}/identify/`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                showResult(data, !response.ok);
+            } catch (error) {
+                showResult({error: 'Failed to connect to server'}, true);
+            }
+        }
+    </script>
+</body>
+</html>

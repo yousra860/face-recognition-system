@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>التقاط من الكاميرا</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        h1 { color: white; text-align: center; }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        video {
+            width: 100%;
+            max-width: 640px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        canvas { display: none; }
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px;
+        }
+        button:hover { transform: scale(1.05); }
+        .controls { margin: 20px 0; }
+        select, input {
+            padding: 10px;
+            margin: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            font-family: monospace;
+            text-align: right;
+        }
+    </style>
+</head>
+<body>
+    <h1>📷 التقاط من الكاميرا</h1>
+    
+    <div class="container">
+        <div class="controls">
+            <select id="mode">
+                <option value="enroll">تسجيل وجه جديد</option>
+                <option value="verify">التحقق من الهوية</option>
+                <option value="identify">التعرف على الهوية</option>
+            </select>
+            
+            <div id="enroll_fields">
+                <input type="text" id="user_id" placeholder="معرف المستخدم">
+                <input type="text" id="full_name" placeholder="الاسم الكامل">
+                <input type="email" id="email" placeholder="البريد الإلكتروني">
+            </div>
+            
+            <div id="verify_fields" style="display:none;">
+                <input type="text" id="verify_user_id" placeholder="معرف المستخدم للتحقق">
+            </div>
+        </div>
+        
+        <video id="video" autoplay></video>
+        <canvas id="canvas" width="640" height="480"></canvas>
+        
+        <div>
+            <button onclick="startCamera()">🔴 تشغيل الكاميرا</button>
+            <button onclick="capture()">📸 التقاط صورة</button>
+        </div>
+        
+        <div id="result">اضغط "تشغيل الكاميرا" للبدء...</div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const API_URL = 'http://localhost:8000/api/v1';
+        
+        // تغيير الحقول حسب الوضع
+        document.getElementById('mode').onchange = function() {
+            document.getElementById('enroll_fields').style.display = 
+                this.value === 'enroll' ? 'block' : 'none';
+            document.getElementById('verify_fields').style.display = 
+                this.value === 'verify' ? 'block' : 'none';
+        };
+        
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                video.srcObject = stream;
+                document.getElementById('result').textContent = '✅ الكاميرا تعمل';
+            } catch (err) {
+                document.getElementById('result').textContent = '❌ خطأ: ' + err.message;
+            }
+        }
+        
+        async function capture() {
+            // رسم الفيديو على الـ canvas
+            ctx.drawImage(video, 0, 0, 640, 480);
+            
+            // تحويل إلى blob
+            const blob = await new Promise(resolve => {
+                canvas.toBlob(resolve, 'image/jpeg', 0.9);
+            });
+            
+            const mode = document.getElementById('mode').value;
+            const formData = new FormData();
+            formData.append('image', blob, 'capture.jpg');
+            
+            let endpoint = '';
+            if (mode === 'enroll') {
+                endpoint = '/enroll/';
+                formData.append('user_id', document.getElementById('user_id').value);
+                formData.append('full_name', document.getElementById('full_name').value);
+                formData.append('email', document.getElementById('email').value);
+            } else if (mode === 'verify') {
+                endpoint = '/verify/';
+                formData.append('user_id', document.getElementById('verify_user_id').value);
+            } else {
+                endpoint = '/identify/';
+            }
+            
+            try {
+                const response = await fetch(API_URL + endpoint, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                document.getElementById('result').innerHTML = 
+                    '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (err) {
+                document.getElementById('result').textContent = '❌ خطأ: ' + err.message;
+            }
+        }
+    </script>
+</body>
+</html>
