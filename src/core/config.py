@@ -25,3 +25,9 @@ def get_settings():
     return Settings()
 
 settings = get_settings()
+ DATABASE_URL: str = "sqlite:///./data/face_recognition.db"
+    
+@property
+    def get_database_url(self):
+        import os
+        return os.getenv("DATABASE_URL", self.DATABASE_URL)
